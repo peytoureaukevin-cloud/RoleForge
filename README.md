@@ -51,3 +51,8 @@ tests/         Tests automatisés
 - composant HeroCard ;
 - affichage plus RPG des attributs ;
 - première version d'arbre de talents.
+
+
+## Sprint 2
+
+La Salle d'aventure a été retravaillée pour ne plus ressembler à un chat brut : journal visuel, intentions rapides, onglets Héros/Sac/Journal et HeroCard réutilisée en partie.

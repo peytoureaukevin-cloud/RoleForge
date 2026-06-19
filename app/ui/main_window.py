@@ -57,6 +57,50 @@ QLabel#StatBar {
     color: #d7ad6b;
     letter-spacing: 1px;
 }
+
+QFrame#AdventurePanel, QFrame#InfoCard {
+    background: #17130f;
+    border: 1px solid #3b2f22;
+    border-radius: 18px;
+}
+QLabel#PillLabel {
+    background: #2f2418;
+    color: #d7ad6b;
+    border: 1px solid #6b4a23;
+    border-radius: 14px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+QPushButton#ActionButton {
+    text-align: left;
+    padding: 10px 12px;
+    background: #211c16;
+}
+QPushButton#ActionButton:hover {
+    background: #312313;
+    border-color: #b8843d;
+}
+QTabWidget::pane {
+    border: 1px solid #3b2f22;
+    border-radius: 14px;
+    top: -1px;
+}
+QTabBar::tab {
+    background: #211c16;
+    color: #b8aa96;
+    border: 1px solid #3b2f22;
+    padding: 8px 14px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+QTabBar::tab:selected {
+    background: #312313;
+    color: #f4eadb;
+    border-color: #b8843d;
+}
+
 QFrame#Panel, QFrame#CampaignCard, QFrame#ChoiceCard, QFrame#HeroCard, QFrame#HeroHeader {
     background: #1b1712;
     border: 1px solid #3b2f22;
@@ -134,7 +178,7 @@ QScrollArea {
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("RoleForge — Sprint 1")
+        self.setWindowTitle("RoleForge — Sprint 2")
         self.resize(1200, 780)
         self.setStyleSheet(APP_STYLE)
 

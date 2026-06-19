@@ -192,3 +192,33 @@ class HeroCard(QFrame):
             stat.set_value(values.get(key, 0))
         tags = ", ".join([line.strip() for line in traits.splitlines() if line.strip()][:4])
         self.tags.setText(f"Traits : {tags or '—'}")
+
+
+class PillLabel(QLabel):
+    """Small label used as an elegant section marker."""
+
+    def __init__(self, text: str) -> None:
+        super().__init__(text)
+        self.setObjectName("PillLabel")
+        self.setAlignment(Qt.AlignCenter)
+        self.setMinimumHeight(28)
+
+
+class InfoCard(QFrame):
+    """Reusable small card with a title and optional description."""
+
+    def __init__(self, title: str, description: str = "") -> None:
+        super().__init__()
+        self.setObjectName("InfoCard")
+        title_label = QLabel(title)
+        title_label.setObjectName("CardTitle")
+        description_label = QLabel(description)
+        description_label.setObjectName("Muted")
+        description_label.setWordWrap(True)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(14, 12, 14, 12)
+        layout.setSpacing(8)
+        layout.addWidget(title_label)
+        if description:
+            layout.addWidget(description_label)
