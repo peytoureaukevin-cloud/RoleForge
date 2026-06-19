@@ -28,6 +28,16 @@ SKILLS = [
     ("craft", "Artisanat"),
 ]
 
+
+ORIGINS = [
+    ("Humain", "Polyvalent, adaptable, difficile à réduire à une seule voie.", "Équilibre"),
+    ("Elfe", "Mémoire longue, regard ancien, affinité avec les choses subtiles.", "Mystère"),
+    ("Nain", "Endurance, mémoire des clans, rapport concret au monde.", "Tenacité"),
+    ("Orphelin", "Personne ne vous attend, mais personne ne vous retient.", "Liberté"),
+    ("Exilé", "Vous avez perdu un lieu. Votre histoire commence par une absence.", "Blessure"),
+    ("Synthétique", "Vous avez été fabriqué, mais personne ne peut décider de votre âme.", "Étrangeté"),
+]
+
 GOALS = [
     "Protéger quelqu'un",
     "Retrouver une vérité",

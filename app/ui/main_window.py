@@ -10,41 +10,87 @@ from app.ui.settings_dialog import SettingsDialog
 
 APP_STYLE = """
 QWidget {
-    background: #12100d;
+    background: #100f0d;
     color: #f4eadb;
     font-size: 14px;
 }
 QLabel#HeroTitle {
-    font-size: 34px;
-    font-weight: 700;
-    letter-spacing: 2px;
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: 3px;
 }
 QLabel#Subtitle, QLabel#Muted {
     color: #b8aa96;
 }
 QLabel#CardTitle {
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
 }
-QFrame#Panel, QFrame#CampaignCard, QFrame#ChoiceCard {
-    background: #1c1813;
+QLabel#HeroCardName {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+QLabel#SmallCaps {
+    color: #d6c7b2;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+QLabel#CardBadge {
+    background: #352819;
+    color: #d7ad6b;
+    border: 1px solid #6b4a23;
+    border-radius: 9px;
+    padding: 3px 8px;
+    font-size: 11px;
+}
+QLabel#PortraitPlaceholder {
+    background: #181510;
+    border: 1px solid #4d3923;
+    border-radius: 18px;
+    color: #8f6a3a;
+    font-size: 18px;
+    padding: 16px;
+}
+QLabel#StatBar {
+    color: #d7ad6b;
+    letter-spacing: 1px;
+}
+QFrame#Panel, QFrame#CampaignCard, QFrame#ChoiceCard, QFrame#HeroCard, QFrame#HeroHeader {
+    background: #1b1712;
     border: 1px solid #3b2f22;
-    border-radius: 14px;
+    border-radius: 18px;
+}
+QFrame#HeroHeader {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #22170d, stop:1 #17130f);
+    border-color: #65461f;
+}
+QFrame#HeroCard {
+    background: #17130f;
+    border-color: #6b4a23;
 }
 QFrame#ChoiceCard:hover {
     background: #251f17;
     border-color: #8a5a24;
 }
+QFrame#ChoiceCard[selected="true"] {
+    background: #312313;
+    border: 2px solid #b8843d;
+}
 QRadioButton {
     spacing: 8px;
-    padding: 4px;
+    padding: 6px;
 }
 QTextEdit, QLineEdit, QComboBox {
     background: #211c16;
     border: 1px solid #4a3a28;
-    border-radius: 10px;
-    padding: 8px;
+    border-radius: 12px;
+    padding: 9px;
     selection-background-color: #8f6a3a;
+}
+QTextEdit:focus, QLineEdit:focus, QComboBox:focus {
+    border-color: #b8843d;
 }
 QTextEdit#Narration {
     font-size: 15px;
@@ -53,17 +99,23 @@ QTextEdit#Narration {
 QPushButton {
     background: #2b241b;
     border: 1px solid #5a4630;
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 9px 14px;
 }
 QPushButton:hover {
     background: #3a3024;
 }
+QPushButton#TinyButton {
+    min-width: 28px;
+    max-width: 34px;
+    padding: 5px;
+    border-radius: 9px;
+}
 QPushButton#PrimaryButton {
     background: #8a5a24;
     border-color: #b8843d;
     color: #fff4e4;
-    font-weight: 600;
+    font-weight: 700;
 }
 QPushButton#PrimaryButton:hover {
     background: #a06b2c;
@@ -82,7 +134,7 @@ QScrollArea {
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("RoleForge — V3")
+        self.setWindowTitle("RoleForge — Sprint 1")
         self.resize(1200, 780)
         self.setStyleSheet(APP_STYLE)
 
