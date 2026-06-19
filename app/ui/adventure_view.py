@@ -82,6 +82,10 @@ class AdventureView(QWidget):
         self.campaign_panel.setReadOnly(True)
         self.campaign_panel.setObjectName("PanelText")
 
+        self.codex_panel = QTextEdit()
+        self.codex_panel.setReadOnly(True)
+        self.codex_panel.setObjectName("PanelText")
+
         self.last_roll = QLabel("Aucun jet lancé.")
         self.last_roll.setObjectName("Muted")
 
@@ -100,6 +104,7 @@ class AdventureView(QWidget):
         side_tabs.setObjectName("SideTabs")
         side_tabs.addTab(self.hero_card, "Héros")
         side_tabs.addTab(self.inventory_panel, "Sac")
+        side_tabs.addTab(self.codex_panel, "Codex")
         side_tabs.addTab(self.campaign_panel, "Journal")
 
         side = QFrame()

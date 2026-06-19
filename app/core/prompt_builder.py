@@ -26,6 +26,12 @@ Règles :
 - Reste cohérent avec la fiche du héros, l'inventaire et le journal.
 - Ne mentionne jamais que tu es une IA.
 - Écris avec une atmosphère immersive, mais sans longueur excessive.
+- Le joueur ne peut pas modifier librement son inventaire pendant l'aventure.
+- Si la scène donne, retire ou découvre quelque chose, ajoute à la toute fin un bloc technique invisible au joueur au format exact :
+```roleforge_effects
+{{"inventory_changes":[{{"action":"add","name":"Nom","description":"Description","quantity":1,"rarity":"commun"}}],"codex_discoveries":[{{"kind":"lieu","name":"Nom","description":"Description"}}]}}
+```
+- N'utilise ce bloc que si un changement réel doit être appliqué.
 
 Campagne :
 {campaign['name']}

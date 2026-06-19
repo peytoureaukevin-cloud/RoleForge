@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
-DB_PATH = ROOT_DIR.parent / "data" / "roleforge_v3.db"
+DB_PATH = ROOT_DIR.parent / "data" / "roleforge_v4.db"
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
 
 
@@ -26,9 +26,19 @@ def init_db() -> None:
     with get_connection() as conn:
         conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         # Lightweight migration for databases created by earlier prototypes.
-        cols = {row[1] for row in conn.execute("PRAGMA table_info(heroes)").fetchall()}
-        if "goal" not in cols:
+        hero_cols = {row[1] for row in conn.execute("PRAGMA table_info(heroes)").fetchall()}
+        if "goal" not in hero_cols:
             conn.execute("ALTER TABLE heroes ADD COLUMN goal TEXT DEFAULT ''")
+        item_cols = {row[1] for row in conn.execute("PRAGMA table_info(inventory_items)").fetchall()}
+        migrations = {
+            "rarity": "ALTER TABLE inventory_items ADD COLUMN rarity TEXT DEFAULT 'commun'",
+            "source": "ALTER TABLE inventory_items ADD COLUMN source TEXT DEFAULT 'creation'",
+            "created_at": "ALTER TABLE inventory_items ADD COLUMN created_at TEXT DEFAULT ''",
+            "updated_at": "ALTER TABLE inventory_items ADD COLUMN updated_at TEXT DEFAULT ''",
+        }
+        for column, ddl in migrations.items():
+            if column not in item_cols:
+                conn.execute(ddl)
         conn.commit()
 
 
@@ -105,8 +115,8 @@ def create_hero(campaign_id: int, hero: dict[str, Any], inventory: list[str], sk
             item = item.strip()
             if item:
                 conn.execute(
-                    "INSERT INTO inventory_items(hero_id, name, description, quantity) VALUES(?, ?, '', 1)",
-                    (hero_id, item),
+                    "INSERT INTO inventory_items(hero_id, name, description, quantity, rarity, source, created_at, updated_at) VALUES(?, ?, '', 1, 'commun', 'creation', ?, ?)",
+                    (hero_id, item, ts, ts),
                 )
         conn.execute("UPDATE campaigns SET updated_at = ? WHERE id = ?", (ts, campaign_id))
         conn.commit()
@@ -151,5 +161,77 @@ def all_journal(campaign_id: int) -> list[sqlite3.Row]:
     with get_connection() as conn:
         return conn.execute(
             "SELECT * FROM journal_entries WHERE campaign_id = ? ORDER BY id ASC",
+            (campaign_id,),
+        ).fetchall()
+
+
+
+def add_inventory_item(hero_id: int, name: str, description: str = "", quantity: int = 1, rarity: str = "commun", source: str = "conteur") -> None:
+    name = name.strip()
+    if not name:
+        return
+    ts = now_iso()
+    with get_connection() as conn:
+        existing = conn.execute(
+            "SELECT * FROM inventory_items WHERE hero_id = ? AND lower(name) = lower(?)",
+            (hero_id, name),
+        ).fetchone()
+        if existing:
+            conn.execute(
+                "UPDATE inventory_items SET quantity = quantity + ?, description = COALESCE(NULLIF(?, ''), description), rarity = COALESCE(NULLIF(?, ''), rarity), updated_at = ? WHERE id = ?",
+                (int(quantity), description, rarity, ts, existing["id"]),
+            )
+        else:
+            conn.execute(
+                "INSERT INTO inventory_items(hero_id, name, description, quantity, rarity, source, created_at, updated_at) VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+                (hero_id, name, description, int(quantity), rarity or "commun", source, ts, ts),
+            )
+        conn.commit()
+
+
+def remove_inventory_item(hero_id: int, name: str, quantity: int = 1) -> None:
+    name = name.strip()
+    if not name:
+        return
+    with get_connection() as conn:
+        existing = conn.execute(
+            "SELECT * FROM inventory_items WHERE hero_id = ? AND lower(name) = lower(?)",
+            (hero_id, name),
+        ).fetchone()
+        if not existing:
+            return
+        remaining = int(existing["quantity"]) - int(quantity)
+        if remaining > 0:
+            conn.execute(
+                "UPDATE inventory_items SET quantity = ?, updated_at = ? WHERE id = ?",
+                (remaining, now_iso(), existing["id"]),
+            )
+        else:
+            conn.execute("DELETE FROM inventory_items WHERE id = ?", (existing["id"],))
+        conn.commit()
+
+
+def add_codex_entry(campaign_id: int, kind: str, name: str, description: str = "", source: str = "conteur") -> None:
+    kind = (kind or "entrée").strip().lower()
+    name = name.strip()
+    if not name:
+        return
+    ts = now_iso()
+    sql = """
+        INSERT INTO codex_entries(campaign_id, kind, name, description, discovered_at, source)
+        VALUES(?, ?, ?, ?, ?, ?)
+        ON CONFLICT(campaign_id, kind, name) DO UPDATE SET
+            description = CASE WHEN excluded.description != '' THEN excluded.description ELSE codex_entries.description END,
+            source = excluded.source
+    """
+    with get_connection() as conn:
+        conn.execute(sql, (campaign_id, kind, name, description, ts, source))
+        conn.commit()
+
+
+def list_codex_entries(campaign_id: int) -> list[sqlite3.Row]:
+    with get_connection() as conn:
+        return conn.execute(
+            "SELECT * FROM codex_entries WHERE campaign_id = ? ORDER BY kind, name",
             (campaign_id,),
         ).fetchall()

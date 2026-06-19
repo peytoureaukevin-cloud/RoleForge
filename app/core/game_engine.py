@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from app.ai.fake_provider import FakeProvider
 from app.ai.openai_provider import OpenAIProvider
+from app.core.effects import format_effect_summary, parse_roleforge_effects
 from app.core.prompt_builder import build_prompt
 from app.database import db
 
@@ -31,6 +32,37 @@ class GameEngine:
         prompt = build_prompt(campaign, hero, inventory, skills, history, player_action)
 
         db.add_journal_entry(campaign_id, "player", player_action)
-        response = self.provider.generate(prompt)
-        db.add_journal_entry(campaign_id, "gm", response)
-        return response
+        raw_response = self.provider.generate(prompt)
+        parsed = parse_roleforge_effects(raw_response)
+        self._apply_effects(campaign_id, hero["id"], parsed.data)
+        db.add_journal_entry(campaign_id, "gm", parsed.clean_text)
+
+        for message in format_effect_summary(parsed.data):
+            db.add_journal_entry(campaign_id, "system", message)
+
+        return parsed.clean_text
+
+    def _apply_effects(self, campaign_id: int, hero_id: int, effects: dict) -> None:
+        for change in effects.get("inventory_changes", []) or []:
+            if not isinstance(change, dict):
+                continue
+            action = change.get("action")
+            name = str(change.get("name") or change.get("item") or "").strip()
+            description = str(change.get("description") or "")
+            quantity = int(change.get("quantity") or 1)
+            rarity = str(change.get("rarity") or "commun")
+            if action == "add":
+                db.add_inventory_item(hero_id, name, description, quantity, rarity, source="conteur")
+            elif action == "remove":
+                db.remove_inventory_item(hero_id, name, quantity)
+
+        for discovery in effects.get("codex_discoveries", []) or []:
+            if not isinstance(discovery, dict):
+                continue
+            db.add_codex_entry(
+                campaign_id,
+                kind=str(discovery.get("kind") or "entrée"),
+                name=str(discovery.get("name") or ""),
+                description=str(discovery.get("description") or ""),
+                source="conteur",
+            )

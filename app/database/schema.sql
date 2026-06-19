@@ -45,6 +45,10 @@ CREATE TABLE IF NOT EXISTS inventory_items (
     name TEXT NOT NULL,
     description TEXT DEFAULT '',
     quantity INTEGER DEFAULT 1,
+    rarity TEXT DEFAULT 'commun',
+    source TEXT DEFAULT 'creation',
+    created_at TEXT DEFAULT '',
+    updated_at TEXT DEFAULT '',
     FOREIGN KEY (hero_id) REFERENCES heroes(id) ON DELETE CASCADE
 );
 
@@ -60,4 +64,17 @@ CREATE TABLE IF NOT EXISTS journal_entries (
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value TEXT
+);
+
+
+CREATE TABLE IF NOT EXISTS codex_entries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    campaign_id INTEGER NOT NULL,
+    kind TEXT NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    discovered_at TEXT NOT NULL,
+    source TEXT DEFAULT 'conteur',
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+    UNIQUE(campaign_id, kind, name)
 );

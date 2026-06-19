@@ -56,3 +56,10 @@ tests/         Tests automatisés
 ## Sprint 2
 
 La Salle d'aventure a été retravaillée pour ne plus ressembler à un chat brut : journal visuel, intentions rapides, onglets Héros/Sac/Journal et HeroCard réutilisée en partie.
+
+
+## Sprint 3 — Inventaire verrouillé & Codex
+
+RoleForge applique maintenant une règle de design importante : le joueur consulte son inventaire, mais ne l'édite pas librement pendant l'aventure.
+
+Les objets et les découvertes sont ajoutés par le Conteur via des effets structurés, puis sauvegardés dans l'inventaire, le Codex et le journal.
