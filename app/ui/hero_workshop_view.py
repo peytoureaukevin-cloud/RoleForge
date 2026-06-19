@@ -20,55 +20,21 @@ from PySide6.QtWidgets import (
 from app.database import db
 
 
-ATTRIBUTES = [
-    ("strength", "Force", "Puissance physique, intimidation, armes lourdes."),
-    ("dexterity", "Dextérité", "Adresse, discrétion, réflexes."),
-    ("intelligence", "Intelligence", "Analyse, savoirs, stratégie."),
-    ("charisma", "Charisme", "Présence, persuasion, mensonge."),
-    ("constitution", "Constitution", "Endurance, résistance, points de vie."),
-]
+from app.core.character_rules import (
+    ATTRIBUTE_MAX,
+    ATTRIBUTE_MIN,
+    ATTRIBUTE_POINTS,
+    CLASS_PRESETS,
+    GOALS,
+    SKILL_MAX,
+    SKILL_MIN,
+    SKILL_POINTS,
+    SKILLS,
+    attribute_rows,
+    validate_exact_pool,
+)
 
-SKILLS = [
-    ("combat", "Combat"),
-    ("survival", "Survie"),
-    ("stealth", "Furtivité"),
-    ("speech", "Discours"),
-    ("arcana", "Arcanes / Tech"),
-    ("craft", "Artisanat"),
-]
-
-CLASS_PRESETS = {
-    "Guerrier": {
-        "attrs": {"strength": 16, "dexterity": 12, "intelligence": 10, "charisma": 10, "constitution": 15},
-        "skills": {"combat": 5, "survival": 2, "stealth": 0, "speech": 1, "arcana": 0, "craft": 4},
-        "inventory": "épée usée\nbouclier marqué\nrations de voyage",
-    },
-    "Rôdeur": {
-        "attrs": {"strength": 12, "dexterity": 16, "intelligence": 11, "charisma": 10, "constitution": 14},
-        "skills": {"combat": 3, "survival": 5, "stealth": 3, "speech": 0, "arcana": 0, "craft": 1},
-        "inventory": "arc court\ncouteau de chasse\ncarte incomplète",
-    },
-    "Mage": {
-        "attrs": {"strength": 8, "dexterity": 12, "intelligence": 18, "charisma": 12, "constitution": 13},
-        "skills": {"combat": 0, "survival": 1, "stealth": 0, "speech": 2, "arcana": 5, "craft": 4},
-        "inventory": "carnet d'études\nbâton gravé\nfiole d'encre noire",
-    },
-    "Voleur": {
-        "attrs": {"strength": 9, "dexterity": 18, "intelligence": 12, "charisma": 12, "constitution": 12},
-        "skills": {"combat": 2, "survival": 0, "stealth": 5, "speech": 2, "arcana": 0, "craft": 3},
-        "inventory": "dague fine\ncrochets rouillés\ncapuche sombre",
-    },
-    "Diplomate": {
-        "attrs": {"strength": 8, "dexterity": 10, "intelligence": 15, "charisma": 18, "constitution": 12},
-        "skills": {"combat": 0, "survival": 0, "stealth": 1, "speech": 5, "arcana": 2, "craft": 4},
-        "inventory": "sceau brisé\nlettre non envoyée\nvêtements impeccables",
-    },
-    "Contrebandier": {
-        "attrs": {"strength": 10, "dexterity": 16, "intelligence": 12, "charisma": 14, "constitution": 11},
-        "skills": {"combat": 2, "survival": 1, "stealth": 3, "speech": 3, "arcana": 1, "craft": 2},
-        "inventory": "blaster fatigué\nveste élimée\n83 crédits",
-    },
-}
+ATTRIBUTES = attribute_rows()
 
 
 class PointRow(QWidget):
@@ -160,7 +126,7 @@ class HeroWorkshopView(QWidget):
 
         self.goal_group = QButtonGroup(self)
         self.goal_buttons: list[QRadioButton] = []
-        goals = ["Protéger quelqu'un", "Retrouver une vérité", "Devenir puissant", "Réparer une faute"]
+        goals = GOALS
         goal_panel = QFrame()
         goal_panel.setObjectName("Panel")
         goal_layout = QVBoxLayout(goal_panel)
@@ -230,7 +196,7 @@ class HeroWorkshopView(QWidget):
         self.points_label.setObjectName("CardTitle")
         stats_layout.addWidget(self.points_label)
         for key, label, description in ATTRIBUTES:
-            row = PointRow(key, label, 8, 18, description)
+            row = PointRow(key, label, ATTRIBUTE_MIN, ATTRIBUTE_MAX, description)
             row.changed.connect(self.update_points)
             self.attribute_rows[key] = row
             stats_layout.addWidget(row)
@@ -243,7 +209,7 @@ class HeroWorkshopView(QWidget):
         self.skill_points_label.setObjectName("CardTitle")
         skills_layout.addWidget(self.skill_points_label)
         for key, label in SKILLS:
-            row = PointRow(key, label, 0, 5)
+            row = PointRow(key, label, SKILL_MIN, SKILL_MAX)
             row.changed.connect(self.update_points)
             self.skill_rows[key] = row
             skills_layout.addWidget(row)
@@ -300,9 +266,9 @@ class HeroWorkshopView(QWidget):
 
     def update_points(self) -> None:
         attr_spent = sum(row.spent() for row in self.attribute_rows.values())
-        attr_remaining = 20 - attr_spent
+        attr_remaining = ATTRIBUTE_POINTS - attr_spent
         skill_spent = sum(row.spent() for row in self.skill_rows.values())
-        skill_remaining = 12 - skill_spent
+        skill_remaining = SKILL_POINTS - skill_spent
         self.points_label.setText(f"Attributs — points restants : {attr_remaining}")
         self.skill_points_label.setText(f"Compétences — points restants : {skill_remaining}")
         for row in self.attribute_rows.values():
@@ -315,8 +281,8 @@ class HeroWorkshopView(QWidget):
     def create(self) -> None:
         campaign_name = self.campaign_name.text().strip()
         hero_name = self.name.text().strip()
-        attr_remaining = 20 - sum(row.spent() for row in self.attribute_rows.values())
-        skill_remaining = 12 - sum(row.spent() for row in self.skill_rows.values())
+        attr_remaining = ATTRIBUTE_POINTS - sum(row.spent() for row in self.attribute_rows.values())
+        skill_remaining = SKILL_POINTS - sum(row.spent() for row in self.skill_rows.values())
         if not campaign_name:
             QMessageBox.warning(self, "Campagne", "Donne un nom à la campagne.")
             return
@@ -324,10 +290,10 @@ class HeroWorkshopView(QWidget):
             QMessageBox.warning(self, "Héros", "Donne un nom au héros.")
             return
         if attr_remaining != 0:
-            QMessageBox.warning(self, "Attributs", "Répartis exactement les 20 points d'attributs.")
+            QMessageBox.warning(self, "Attributs", f"Répartis exactement les {ATTRIBUTE_POINTS} points d'attributs.")
             return
         if skill_remaining != 0:
-            QMessageBox.warning(self, "Compétences", "Répartis exactement les 12 points de compétences.")
+            QMessageBox.warning(self, "Compétences", f"Répartis exactement les {SKILL_POINTS} points de compétences.")
             return
 
         campaign_id = db.create_campaign(campaign_name, self.setting.currentText())
